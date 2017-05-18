@@ -1,0 +1,20 @@
+hub:
+    image: selenium/hub
+    ports:
+        - "4444:4444"
+chrome:
+    image: selenium/node-chrome
+    ports:
+        - 5900
+    links:
+        - hub
+        
+behat:
+    build: ./
+    links:
+        - hub
+        - chrome
+    environment:
+        - SUITE
+        - NETWORK
+        - OPTIONAL_ARGS

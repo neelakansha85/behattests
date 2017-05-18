@@ -1,0 +1,11 @@
+.DS_Store
+
+# Thumbnails
+._*
+
+
+# Behat dependencies
+vendor
+bin
+composer.lock
+*.ymle
