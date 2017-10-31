@@ -1,44 +1,74 @@
 # behat.yml
-
 default:
     autoload: [ %paths.base%/bootstrap ]
     extensions:
-        Behat\MinkExtension:
-            base_url: https://test.com
-            javascript_session: 'selenium2'
-            browser_name: chrome
-            goutte:
-              guzzle_parameters:
-                verify: false
-            selenium2:
-              wd_host: http://hub:4444/wd/hub
-              capabilities:
-                version: ''
-
+      Behat\MinkExtension:
+        base_url: https://dev.yoursite.com
+        javascript_session: 'selenium2'
+        browser_name: chrome
+        goutte:
+          guzzle_parameters:
+            verify: false
+        selenium2:
+          wd_host: http://hub:4444/wd/hub
+          capabilities:
+            version: ''
+      Bex\Behat\ScreenshotExtension:
+        # screenshot_taking_mode: failed_scenarios
+        image_drivers:
+          local:
+            screenshot_directory: ./build/screenshots
+    suites:
+      default:
+        contexts:
+          - FeatureContext:
+              parameters:
+                themes_page_url: wp-admin/themes.php?page=multisite-theme-manager.php
+                screen_shot_path: /root/project/screenshots/
+              users:
+                testuser1: 'test1passwrd'
+                testuser2: 'test2passwrd'
     formatters:
       pretty: true
+      junit:
+        output_path: %paths.base%/build/reports
+dev:
+    extensions:
+      Behat\MinkExtension:
+        base_url: https://dev.yoursite.com
+sbx:
+    extensions:
+      Behat\MinkExtension:
+        base_url: https://sbx.yoursite.com
+qa:
+    extensions:
+      Behat\MinkExtension:
+        base_url: https://qa.yoursite.com
+prod:
+    extensions:
+      Behat\MinkExtension:
+        base_url: https://yoursite.com
     suites:
-      admin:
-        paths: [ %paths.base%/features/admin ]
+      default:
         contexts:
           - FeatureContext:
-                parameters:
+              parameters:
+                themes_page_url: wp-admin/themes.php?page=multisite-theme-manager.php
+              users:
+                testuser1: 'newtest1passwrd'
+                testuser2: 'newtest2passwrd'
+local:
+    extensions:
+      Behat\MinkExtension:
+        base_url: http://localhost/wp
+        selenium2:
+          wd_host: http://localhost:4444/wd/hub
+    suites:
+      default:
+        contexts:
+          - FeatureContext:
+              parameters:
                   users:
-                     testuser1: 'test1passwrd'
-                     testuser2: 'test2passwrd'
+                    testuser1: 'password'
+                    testuser2: 'password'
 
-      frontend:
-        paths: [ %paths.base%/features/frontend ]
-        contexts:
-          - FeatureContext:
-                parameters:
-                  users:
-                    testuser3: 'test3passwrd'
-
-      subsites:
-        paths: [ %paths.base%/features/subsites ]
-        contexts:
-          - FeatureContext:
-                parameters:
-                  users:
-                    testuser4: 'test4passwrd'
