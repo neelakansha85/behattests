@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+    hub:
+        image: selenium/hub:3.5.2
+        ports:
+            - "4444:4444"
+        volumes:
+            - /dev/shm:/dev/shm
+        environment:
+            - GRID_BROWSER_TIMEOUT=60
+            - GRID_TIMEOUT=60
+    chrome:
+        image: selenium/node-chrome:3.5.2
+        links:
+            - hub
+        environment:
+            - HUB_PORT_4444_TCP_ADDR=hub
+            - HUB_PORT_4444_TCP_PORT=4444
+        volumes:
+            - /dev/shm:/dev/shm
