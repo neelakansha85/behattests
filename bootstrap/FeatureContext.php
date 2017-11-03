@@ -476,11 +476,16 @@ class FeatureContext extends MinkContext {
 	public function pluginIsNetworkActivated( $plugin_name ) {
 		$this->pluginIsInstalled( $plugin_name );
 		$pluginactivationfield = $this->getSession()->getPage()->find( 'css', 'td[class="plugin-title column-primary"]' );
-		$plugintest            = $pluginactivationfield->getText();
-		if ( stripos( $plugintest, $plugin_name ) === false ) {
-			throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $plugin_name ) );
+		$pluginInfo            = $pluginactivationfield->getText();
+		if ( stripos( $pluginInfo, $plugin_name ) === false ) {
+			// Wait for the ajax request to complete while searching for the plugin details
+			$this->iWaitForElement('#the-list');
+			// Check again if the plugin details for the given plugin is now present in the list
+			if ( stripos( $pluginInfo, $plugin_name ) === false ) {
+				throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $plugin_name ) );	
+			}
 		}
-		if ( stripos( $plugintest, "Network Deactivate" ) === false ) {
+		if ( stripos( $pluginInfo, "Network Deactivate" ) === false ) {
 			throw new Exception( sprintf( '"%s" is not network activated', $plugin_name ) );
 		}
 	}
