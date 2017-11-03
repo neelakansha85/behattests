@@ -74,9 +74,8 @@ class FeatureContext extends MinkContext {
 	/**
 	 * Wordpress: Authenticates a user using wordpress local login.
 	 *
-	 * @Given /^I am logged in as "([^"]*)" with the password "([^"]*)"$/
 	 */
-	public function iAmLoggedInAsWithThePassword( $username, $passwd ) {
+	public function loginWithPassword( $username, $passwd ) {
 		$this->getSession()->visit( $this->locatePath( 'wp-login.php' ) );
 		// Log in
 		$element = $this->getSession()->getPage();
@@ -123,7 +122,7 @@ class FeatureContext extends MinkContext {
 	 */
 	public function iAmLoggedInAs( $username ) {
 		$password = $this->fetchPassword( $username );
-		$this->iAmLoggedInAsWithThePassword( $username, $password );
+		$this->loginWithPassword( $username, $password );
 	}
 
 	/**
