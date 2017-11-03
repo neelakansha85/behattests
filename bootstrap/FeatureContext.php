@@ -126,6 +126,80 @@ class FeatureContext extends MinkContext {
 	}
 
 	/**
+	 * Authenticates a user using Shibboleth SSO Login.
+	 *
+	 */
+	public function loginWithPasswordUsingShibboleth( $username, $passwd ) {
+		$this->getSession()->visit( $this->locatePath( 'wp-login.php' ) );
+		// Log in
+		$element = $this->getSession()->getPage();
+		if ( empty( $element ) ) {
+			throw new Exception( 'Page not found' );
+		}
+		# Click Login with Shibboleth Button
+		$shibLoginButton = $this->getSession()->getPage()->findLink( 'Login with Shibboleth' );
+		$shibUrl         = $shibLoginButton->getAttribute( 'href' );
+
+		if ( empty( $shibUrl ) ) {
+			throw new Exception( 'Login with Shibboleth link not found at ' . $this->getSession()->getCurrentUrl() );
+		}
+		# Visit Shibboleth Login Page
+		try {
+			$shibbolethPageUrl = $this->getMinkParameter( 'base_url' ) . $shibUrl;
+			$this->getSession()->visit( $shibbolethPageUrl );
+		} catch ( Exception $e ) {
+			throw new Exception( 'Cannot visit Shibboleth Login page' );
+		}
+		$currentUrl    = $this->getSession()->getCurrentUrl();
+		$shibbolethUrl = 'shibboleth';
+		# Verify whether the current page is shib login page.
+		if ( stripos( $currentUrl, $shibbolethUrl ) !== false ) {
+			// Verify if we have login form available on the page
+			$this->iWaitForElement('#login');
+			$element->fillField( 'netid', $username );
+			try {
+				$this->assertSession()->fieldValueEquals( 'netid', $username );
+			} catch ( Exception $e ) {
+				$element->fillField( 'netid', $username );
+			}
+
+			$element->fillField( 'password', $passwd );
+			try {
+				$this->assertSession()->fieldValueEquals( 'password', $passwd );
+			} catch ( Exception $e ) {
+				$element->fillField( 'password', $passwd );
+			}
+
+			$loginButton = $element->findButton( '_eventId_proceed' );
+			if ( empty( $loginButton ) ) {
+				throw new Exception( 'Login button not found at ' . $this->getSession()->getCurrentUrl() );
+			}
+			$loginButton->click();
+
+			# Verify if wordpress dashboard page loads
+			try {
+				$this->iWaitForElement('#wpcontent');
+			} catch ( Exception $e ) {
+				throw new Exception( 'Login failed at ' . $this->getSession()->getCurrentUrl() );
+			}
+			return;
+
+		} else {
+			throw new Exception ( 'You are currently not on the Shibboleth login page.' );
+		}
+	}
+
+	/**
+	 * Authenticates a user with password from configuration using Shibboleth.
+	 *
+	 * @Given /^I am logged in as "([^"]*)" using shibboleth$/
+	 */
+	public function iAmLoggedInAsUsingShib( $username ) {
+		$password = $this->fetchPassword( $username );
+		$this->loginWithPasswordUsingShibboleth( $username, $password );
+	}
+
+	/**
 	 * Visit a given URL 
 	 * 
 	 * @Given /^I should visit "([^"]*)"$/
