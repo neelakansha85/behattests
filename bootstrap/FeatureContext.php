@@ -84,9 +84,9 @@ class FeatureContext extends MinkContext {
 			throw new Exception( 'Page not found' );
 		}
 
-		$login_text = $element->findById( 'user_login' );
+		$loginText = $element->findById( 'user_login' );
 		// Wait for few seconds if element is not found due to page load issue
-		if ( empty( $login_text ) ) {
+		if ( empty( $loginText ) ) {
 			sleep( 3 );
 		}
 
