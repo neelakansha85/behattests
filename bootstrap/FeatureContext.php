@@ -167,8 +167,8 @@ class FeatureContext extends MinkContext {
 		if ( null === $selector ) {
 			throw new \Exception( sprintf( 'Cannot find the element ' . $element ) );
 		}
-		$validate_value = $selector->getText();
-		if ( stripos( $validate_value, $value ) === false ) {
+		$currentValue = $selector->getText();
+		if ( stripos( $currentValue, $value ) === false ) {
 			throw new \Exception( sprintf( 'Cannot find the ' . $element . ' with value ' . $value ) );
 		}
 	}
@@ -228,8 +228,8 @@ class FeatureContext extends MinkContext {
 			throw new \Exception( sprintf( 'Cannot find the element ' . $element ) );
 		}
 		foreach ( $selector as $item ) {
-			$validate_value = $item->getText();
-			if ( stripos( $validate_value, $value ) === false ) {
+			$currentValue = $item->getText();
+			if ( stripos( $currentValue, $value ) === false ) {
 				throw new \Exception( sprintf( 'Cannot find the ' . $element . ' with value ' . $value ) );
 			}
 		}
@@ -249,9 +249,9 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^scroll to element with class "([^"]*)"$/
 	 */
-	public function scrollToElementWithClass( $element_class ) {
+	public function scrollToElementWithClass( $element ) {
 		try {
-			$js = sprintf( "document.getElementsByClassName(\"%s\")[0].scrollIntoView(true);", $element_class );
+			$js = sprintf( "document.getElementsByClassName(\"%s\")[0].scrollIntoView(true);", $element );
 			$this->getSession()->executeScript( $js );
 		} catch ( Exception $e ) {
 			throw new \Exception( "ScrollIntoView failed" );
@@ -453,18 +453,18 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^"([^"]*)" plugin is installed$/
 	 */
-	public function pluginIsInstalled( $plugin_name ) {
+	public function pluginIsInstalled( $pluginName ) {
 		$this->getSession()->visit( $this->locatePath( 'wp-admin/network/plugins.php' ) );
 		$field       = 'plugin-search-input';
 		$field       = $this->fixStepArgument( $field );
-		$plugin_name = $this->fixStepArgument( $plugin_name );
-		$this->getSession()->getPage()->fillField( $field, $plugin_name );
+		$pluginName = $this->fixStepArgument( $pluginName );
+		$this->getSession()->getPage()->fillField( $field, $pluginName );
 		sleep( 2 );
 		$this->getSession()->wait( 5000, 'jQuery.active === 0' );
 		$selector    = $this->getSession()->getPage()->findById( 'the-list' );
-		$plugin_info = $selector->getText();
-		if ( stripos( $plugin_info, "No plugins found for" ) !== false ) {
-			throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $plugin_name ) );
+		$pluginInfo = $selector->getText();
+		if ( stripos( $pluginInfo, "No plugins found for" ) !== false ) {
+			throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $pluginName ) );
 		}
 	}
 
@@ -473,20 +473,20 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^"([^"]*)" plugin is network activated$/
 	 */
-	public function pluginIsNetworkActivated( $plugin_name ) {
-		$this->pluginIsInstalled( $plugin_name );
+	public function pluginIsNetworkActivated( $pluginName ) {
+		$this->pluginIsInstalled( $pluginName );
 		$pluginactivationfield = $this->getSession()->getPage()->find( 'css', 'td[class="plugin-title column-primary"]' );
 		$pluginInfo            = $pluginactivationfield->getText();
-		if ( stripos( $pluginInfo, $plugin_name ) === false ) {
+		if ( stripos( $pluginInfo, $pluginName ) === false ) {
 			// Wait for the ajax request to complete while searching for the plugin details
 			$this->iWaitForElement('#the-list');
 			// Check again if the plugin details for the given plugin is now present in the list
-			if ( stripos( $pluginInfo, $plugin_name ) === false ) {
-				throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $plugin_name ) );	
+			if ( stripos( $pluginInfo, $pluginName ) === false ) {
+				throw new Exception( sprintf( 'Cannot find "%s" in Network Admin Plugins page ', $pluginName ) );	
 			}
 		}
 		if ( stripos( $pluginInfo, "Network Deactivate" ) === false ) {
-			throw new Exception( sprintf( '"%s" is not network activated', $plugin_name ) );
+			throw new Exception( sprintf( '"%s" is not network activated', $pluginName ) );
 		}
 	}
 
@@ -495,13 +495,13 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^"([^"]*)" plugin is available for "([^"]*)"$/
 	 */
-	public function pluginIsAvailableFor( $plugin_folder_name, $user_control ) {
+	public function pluginIsAvailableFor( $pluginDirName, $userControl ) {
 		$this->getSession()->visit( $this->locatePath( 'wp-admin/network/plugins.php?page=plugin-management' ) );
-		$row = $this->getSession()->getPage()->find( 'css', 'select[name*="' . $plugin_folder_name . '"]' );
+		$row = $this->getSession()->getPage()->find( 'css', 'select[name*="' . $pluginDirName . '"]' );
 
-		$selected_element = $row->find( 'css', 'option[selected="yes"]' );
-		if ( strcasecmp( $selected_element->getText(), $user_control ) != 0 ) {
-			throw new Exception( "User Control '" . $user_control . "' is not set for plugin " . $plugin_folder_name );
+		$element = $row->find( 'css', 'option[selected="yes"]' );
+		if ( strcasecmp( $element->getText(), $userControl ) != 0 ) {
+			throw new Exception( "User Control '" . $userControl . "' is not set for plugin " . $pluginDirName );
 		}
 	}
 
@@ -510,16 +510,16 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^"([^"]*)" plugin is activated$/
 	 */
-	public function pluginIsActivated( $plugin_name ) {
+	public function pluginIsActivated( $pluginName ) {
 		$field       = 'plugin-search-input';
 		$field       = $this->fixStepArgument( $field );
-		$plugin_name = $this->fixStepArgument( $plugin_name );
-		$this->getSession()->getPage()->fillField( $field, $plugin_name );
+		$pluginName = $this->fixStepArgument( $pluginName );
+		$this->getSession()->getPage()->fillField( $field, $pluginName );
 		sleep( 2 );
 		$selector    = $this->getSession()->getPage()->findById( 'the-list' );
-		$plugin_info = $selector->getText();
-		if ( stripos( $plugin_info, "Deactivate" ) === false ) {
-			throw new Exception( sprintf( '"%s" is not activated', $plugin_name ) );
+		$pluginInfo = $selector->getText();
+		if ( stripos( $pluginInfo, "Deactivate" ) === false ) {
+			throw new Exception( sprintf( '"%s" is not activated', $pluginName ) );
 		}
 	}
 
@@ -529,12 +529,12 @@ class FeatureContext extends MinkContext {
 	 * @Then /^I log out$/
 	 */
 	public function iLogOut() {
-		$logout_url = $this->getSession()->getPage()->find( 'css', 'li#wp-admin-bar-logout > a' )->getAttribute( 'href' );
+		$logoutUrl = $this->getSession()->getPage()->find( 'css', 'li#wp-admin-bar-logout > a' )->getAttribute( 'href' );
 
-		if ( null === $logout_url ) {
+		if ( null === $logoutUrl ) {
 			throw new \InvalidArgumentException( sprintf( 'Cannot find logout url' ) );
 		}
-		$this->visit( $logout_url );
+		$this->visit( $logoutUrl );
 	}
 
 	/**
@@ -543,12 +543,12 @@ class FeatureContext extends MinkContext {
 	 * TODO: Need to fix activating incorrect theme when search results in more than 1 options
 	 *
 	 */
-	public function iActivateThemeUsingDefaultThemePage( $theme_name ) {
+	public function iActivateThemeUsingDefaultThemePage( $themeName ) {
 		$fieldCssSelector    = 'wp-filter-search-input';
 		$activateCssSelector = '#wpbody-content > div.wrap > div.theme-browser.rendered > div > div > div.theme-actions > a.button.activate';
 		$field               = $this->fixStepArgument( $fieldCssSelector );
-		$theme_name          = $this->fixStepArgument( $theme_name );
-		$this->getSession()->getPage()->fillField( $field, $theme_name );
+		$themeName          = $this->fixStepArgument( $themeName );
+		$this->getSession()->getPage()->fillField( $field, $themeName );
 		sleep( 2 );
 		$themeStatus   = "h2.theme-name";
 		$active        = $this->getSession()->getPage()->find( 'css', $themeStatus )->getText();
@@ -569,7 +569,7 @@ class FeatureContext extends MinkContext {
 				$activateButton->click();
 			} #Case2: Unable to click Activate Button
 			catch ( Exception $e ) {
-				throw new \Exception ( "$theme_name cannot be activated" );
+				throw new \Exception ( "$themeName cannot be activated" );
 			}
 		}
 	}
@@ -581,16 +581,16 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^I activate theme "([^"]*)"$/
 	 */
-	public function iActivateTheme( $theme_name ) {
+	public function iActivateTheme( $themeName ) {
 		$siteAddress   = $this->getCurrentSiteUrl();
 		$themesPageUrl = $siteAddress . $this->themesPageUrl;
 		$this->getSession()->visit( $themesPageUrl );
 		$currentUrl        = $this->getSession()->getCurrentUrl();
 		$multisiteThemeUrl = 'page=multisite-theme-manager.php';
 		if ( stripos( $currentUrl, $multisiteThemeUrl ) ) {
-			$this->iActivateThemeUsingMultisiteThemeManager( $theme_name );
+			$this->iActivateThemeUsingMultisiteThemeManager( $themeName );
 		} else {
-			$this->iActivateThemeUsingDefaultThemePage( $theme_name );
+			$this->iActivateThemeUsingDefaultThemePage( $themeName );
 		}
 	}
 
@@ -611,20 +611,20 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^I activate plugin "([^"]*)"$/
 	 */
-	public function iActivatePlugin( $plugin_name ) {
+	public function iActivatePlugin( $pluginName ) {
 		$fieldCssSelector    = 'plugin-search-input';
 		$activateCssSelector = '#the-list > tr > td.plugin-title.column-primary > div > span.activate > a';
 		$siteAddress = $this->getCurrentSiteUrl();
 		$pluginsPageUrl = $siteAddress . $this->pluginsPageUrl;
         $this->getSession()->visit( $pluginsPageUrl );
 		$field               = $this->fixStepArgument( $fieldCssSelector );
-		$this->getSession()->getPage()->fillField( $field, $plugin_name );
+		$this->getSession()->getPage()->fillField( $field, $pluginName );
 		$this->iWaitForElement('#the-list');
 		$selector = $this->getSession()->getPage()->findById( 'the-list' );
-		$plugin_info  = $selector->getText();
+		$pluginInfo  = $selector->getText();
 		$pluginStatus = 'Deactivate';
 		# Case1: Plugin is already activated
-		if ( strpos( $plugin_info, $pluginStatus ) !== false ) {
+		if ( strpos( $pluginInfo, $pluginStatus ) !== false ) {
 			return;
 		} else { 
 			# Case2: Plugin does not exist , hence activate button not found
@@ -634,13 +634,13 @@ class FeatureContext extends MinkContext {
 					throw new Exception;
 				}
 			} catch ( Exception $e ) {
-				throw new Exception ( "$plugin_name not found" );
+				throw new Exception ( "$pluginName not found" );
 			} 
 			# Case3: Unable to click activate button
 			try {
 				$activateButton->click();
 			} catch ( Exception $e ) {
-				throw new Exception( "$plugin_name cannot be activated" );
+				throw new Exception( "$pluginName cannot be activated" );
 			}
 		}
 	}
@@ -650,20 +650,20 @@ class FeatureContext extends MinkContext {
 	 *
 	 * @Then /^I deactivate plugin "([^"]*)"$/
 	 */
-	public function iDeactivatePlugin( $plugin_name ) {
+	public function iDeactivatePlugin( $pluginName ) {
 		$fieldCssSelector      = 'plugin-search-input';
 		$deactivateCssSelector = '#the-list > tr > td.plugin-title.column-primary > div > span.deactivate > a';
         $siteAddress = $this->getCurrentSiteUrl();
         $pluginsPageUrl = $siteAddress . $this->pluginsPageUrl;
         $this->getSession()->visit( $pluginsPageUrl );
 		$field                 = $this->fixStepArgument( $fieldCssSelector );
-		$this->getSession()->getPage()->fillField( $field, $plugin_name );
+		$this->getSession()->getPage()->fillField( $field, $pluginName );
 		sleep( 2 );
 		$selector     = $this->getSession()->getPage()->findById( 'the-list' );
-		$plugin_info  = $selector->getText();
+		$pluginInfo  = $selector->getText();
 		$pluginStatus = 'Activate';
 		# Case1: Plugin is already deactivated
-		if ( strpos( $plugin_info, $pluginStatus ) !== false ) {
+		if ( strpos( $pluginInfo, $pluginStatus ) !== false ) {
 			return;
 		} else { 
 			# Case2: Plugin does not exist , hence deactivate button not found
@@ -674,13 +674,13 @@ class FeatureContext extends MinkContext {
 					throw new Exception;
 				}
 			} catch ( Exception $e ) {
-				throw new Exception ( "$plugin_name already activated" );
+				throw new Exception ( "$pluginName already activated" );
 			} 
 			# Case3: Unable to click Deactivate button
 			try {
 				$deactivateButton->click();
 			} catch ( Exception $e ) {
-				throw new Exception( "$plugin_name cannot be deactivated" );
+				throw new Exception( "$pluginName cannot be deactivated" );
 			}
 		}
 	}
@@ -730,13 +730,13 @@ class FeatureContext extends MinkContext {
 	 *
 	 * TODO: Need to fix activating incorrect theme when search results in more than 1 options
 	 */
-	public function iActivateThemeUsingMultisiteThemeManager( $theme_name ) {
+	public function iActivateThemeUsingMultisiteThemeManager( $themeName ) {
 		$fieldCssSelector    = 'theme-search-input';
 		$activateCssSelector = '#wpbody-content > div.wrap > div.theme-browser.rendered > div > div > div.theme-actions > a.button.button-primary.activate';
 		$field               = $this->fixStepArgument( $fieldCssSelector );
-		$theme_name          = $this->fixStepArgument( $theme_name );
+		$themeName          = $this->fixStepArgument( $themeName );
 		sleep(2);
-		$this->getSession()->getPage()->fillField( $field, $theme_name );
+		$this->getSession()->getPage()->fillField( $field, $themeName );
 		sleep( 2 );
 		$themeStatusHeader = "h3.theme-name";
 		$active            = $this->getSession()->getPage()->find( 'css', $themeStatusHeader )->getText();
@@ -759,7 +759,7 @@ class FeatureContext extends MinkContext {
 				$activateButton->click();
 			} #Case2: Unable to click Activate Button
 			catch ( Exception $e ) {
-				throw new \Exception ( "$theme_name cannot be activated" );
+				throw new \Exception ( "$themeName cannot be activated" );
 			}
 		}
 	}
