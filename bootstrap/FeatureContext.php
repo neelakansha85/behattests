@@ -72,7 +72,7 @@ class FeatureContext extends MinkContext {
     }
 
 	/**
-	 * Wordpress: Authenticates a user.
+	 * Wordpress: Authenticates a user using wordpress local login.
 	 *
 	 * @Given /^I am logged in as "([^"]*)" with the password "([^"]*)"$/
 	 */
@@ -84,11 +84,8 @@ class FeatureContext extends MinkContext {
 			throw new Exception( 'Page not found' );
 		}
 
-		$loginText = $element->findById( 'user_login' );
-		// Wait for few seconds if element is not found due to page load issue
-		if ( empty( $loginText ) ) {
-			sleep( 3 );
-		}
+		// Verify if we have login form available on the page
+		$this->iWaitForElement('#user_login');
 
 		$element->fillField( 'log', $username );
 		try {
@@ -110,16 +107,12 @@ class FeatureContext extends MinkContext {
 		}
 		$submit->click();
 		
-		$link = $this->getSession()->getPage()->findLink( "Dashboard" );
-		// Wait for few seconds if element is not found due to page load issue
-		if ( empty( $link ) ) {
-			sleep( 3 );
-			$link = $this->getSession()->getPage()->findLink( "Dashboard" );
-		}
-		if ( empty( $link ) ) {
+		# Verify if wordpress dashboard page loads
+		try {
+			$this->iWaitForElement('#wpcontent');
+		} catch ( Exception $e ) {
 			throw new Exception( 'Login failed at ' . $this->getSession()->getCurrentUrl() );
 		}
-
 		return;
 	}
 
