@@ -1,0 +1,1 @@
+# This is where all the screenshots will be saved from behat tests

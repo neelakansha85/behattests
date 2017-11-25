@@ -1,0 +1,1 @@
+# This is where all the results from behat tests will be saved in xml format
